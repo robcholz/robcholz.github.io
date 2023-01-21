@@ -1,8 +1,8 @@
-# Setup CLion with STM32CubeMX project for STM32 Developement on macOS
+# Setup CLion with STM32CubeMX project for STM32 Development on macOS
 
 Keil is very easy to handle for embedded development but might not have some functionalities such as code completion and inlay hint. This would trouble you especially when you want to conduct a big project.
 
-IDEs by Jetbrains like Intellij and Pycharm are very popular in the market. They have many advantages including charming UIs, good usability, safe refactoring. Doubtlessly, their IDEs could greatly assist your coding works. CLion is a cross-platform IDE for C/C++ development by Jetbrains, and I will guide you to setup a basic development environment for STM32 in this tutorial.
+IDEs by Jetbrains like Intellij and Pycharm are very popular in the market. They have many advantages including charming UIs, good usability, safe refactoring. Doubtlessly, their IDEs could greatly assist your coding works. CLion is a cross-platform IDE for C/C++ development by Jetbrains, and I will guide you to setup a basic development environment for STM32 with CLion in this tutorial.
 
 ## Tools
 
