@@ -31,31 +31,31 @@ IDEs by Jetbrains like Intellij and Pycharm are very popular in the market. They
 >Downloading requires email verification.
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/open_package.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/open_package.png" width="500">
 </p>
 
 - After you unzip the downloaded file, right-click the STM32CubeMX package and click `Show Package Contents` and right click to open the executable file inside the package.
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/malware_issue.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/malware_issue.png" width="500">
 </p>
 
 - There will be an error window popped up. Click `Cancel`.
   
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/privacy_setting.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/privacy_setting.png" width="500">
 </p>
 
 - Open `Security & Privacy` in `System Preferences` and click `Allow Anyway`.
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/open_cubemx.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/open_cubemx.png" width="500">
 </p>
   
 - Open STM32CubeMX executable file again in the package and click `Open`.
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/installation_wizard.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/installation_wizard.png" width="500">
 </p>
 
 - Install STM32CubeMX.
@@ -83,7 +83,7 @@ You should have installed these tools above before you continue the next step.
 ### OpenOCD & STM32CubeMX Paths
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/embedded_dev_tools_set.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/embedded_dev_tools_set.png" width="500">
 </p>
 
 - Generally, both of your OpenOCD and CubeMX locations should be as same as me. Remember to test your paths by clicking `Test`.
@@ -91,49 +91,49 @@ You should have installed these tools above before you continue the next step.
 ### Toolchains
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/toolchains.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/toolchains.png" width="500">
 </p>
 
 - Set build tools, C/C++ compilers and debuggers. You should use `Bundled GDB` or like me, manually set another GDB path for `Debugger` option.
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/new_project.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/new_project.png" width="500">
 </p>
 
 - Create a new `STM32CubeMX` project.
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/select_board_type.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/select_board_type.png" width="500">
 </p>
 
 - Here, you can either click `Use` to choose a board type or click `Skip` to choose one later.
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/open_with_cubemx.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/open_with_cubemx.png" width="500">
 </p>
 
 - Click `Open with STM32CubeMX` to open the application.
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/mcu_before.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/mcu_before.png" width="500">
 </p>
 
 - The default MCU is `STM32F030F4Px`.
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/mcu_after.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/mcu_after.png" width="500">
 </p>
 
 - You can use STM32CubeMX like what you do everyday.
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/ide_selection.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/ide_selection.png" width="500">
 </p>
 
 >- You have to select `STM32CubeIDe` in `Toolchain / IDE` setting, and the `Project Name` should be kept as same as the project name in CLion.
 
 <p align="middle">
-  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/edit_config.png" width="420">
+  <img src="/assets/imgs/2023_01_21_CLion_Dev_macOS/edit_config.png" width="500">
 </p>
 
 - After you generate code and overwrite the old project files, click `Assist` and choose a board type in `Run/Debug Configurations`.
