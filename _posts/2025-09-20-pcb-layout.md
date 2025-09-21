@@ -27,16 +27,25 @@ For larger current, the trace should be covered with solder in practice(or 4.5+o
 
 ### Steps
 
-- 1. Place the constrained components first (USB, wire to wire connectors, mechanic holes...).
-- 2. Plan the power, digital, and analog area.
-- 3. Start with important signal traces.
-- 4. Add fanout vias for small current power.
-- 5. Complete all the traces.
-- 6. Optimize the traces.
-- 7. Add teardrops, copper pour.
-- 8. Optimize the planes.
-- 9. Check DRC, check silk layer(designators), texts and icons.
-- 10. Export Gerber, Pick and Place, BOM.
+1. Place the constrained components first (USB, wire to wire connectors, mechanic holes...).
+
+2. Plan the power, digital, and analog area.
+
+3. Start with important signal traces.
+
+4. Add fanout vias for small current power.
+
+5. Complete all the traces.
+
+6. Optimize the traces.
+
+7. Add teardrops, copper pour.
+
+8. Optimize the planes.
+
+9. Check DRC, check silk layer(designators), texts and icons.
+
+10. Export Gerber, Pick and Place, BOM.
 
 ### DC-DC
 
