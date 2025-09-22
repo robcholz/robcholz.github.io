@@ -23,7 +23,24 @@ For larger current, the trace should be covered with solder in practice(or 4.5+o
 - For small-size pcbs, silkscreen referemce designators can be removed.
 - Follow 3W principles to improve signal integrity for high-speed traces.
 
+## Layer Net Allocation
+
+- 2 Layer Board: All GND
+- 4 Layer Board
+  - Type 1: GND, SIG-1, SIG-2, PWR
+    - Uncontinuous impedance.
+  - Type 2: SIG-1, PWR, GND, SIG-2
+    - Useful when key components or signals are on the top.
+  - Type 3: SIG-1, GND, PWR, SIG-2
+    - Useful when key components or signals are on the bottom.
+
 ## Layout
+
+### Increase EMC
+
+#### 20H Rule
+
+- Shrinking the inner PWR plane zone by 20mil can make electric field decrease by 70%, while 100mil can make decrease by 98%.
 
 ### Steps
 
