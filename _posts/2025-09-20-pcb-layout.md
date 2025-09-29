@@ -64,14 +64,6 @@ For larger current, the trace should be covered with solder in practice(or 4.5+o
 
 10. Export Gerber, Pick and Place, BOM.
 
-### DC-DC
-
-- Minimize SW(switch)–FB(feedback) trace length to reduce noise.
-- Keep the inductor away from sensitive analog, high speed digital traces.
-- Use GND via fences around the inductor to contain switching noise.
-- Place capacitors close to IC pins, largest to smallest (bulk → high-frequency).
-- Estimate the temp rise using the chip’s *thermal resistance (°C/W)* and account for ventilation or airflow (copper pour/vias/thermals).
-
 ### Components
 
 #### Designators
@@ -90,6 +82,7 @@ For larger current, the trace should be covered with solder in practice(or 4.5+o
 - Differential pair rule should be applied to D+/D- pair.
   - Keep out area under it.
   - Place a bidirectional TVS diode across them.
+  - Impedence: ~90ohm.
 - Design traces and planes to handle the maximum current.
 - Place a unidirectional TVS diode across VBUS and GND.
 
@@ -100,3 +93,42 @@ For larger current, the trace should be covered with solder in practice(or 4.5+o
 - For analog circuits, AGND should be as close as to analog ref voltage, filter capacitor or amps.
 - For digital circuits, DGND should be as close as to digital power source and output payload.
 - For PGND, delegated GND can be used, and it can be connected to A/DGND by capacitor or at a *star ground*.
+
+#### DC-DC
+
+- Minimize SW(switch)–FB(feedback) trace length to reduce noise.
+- Keep the inductor away from sensitive analog, high speed digital traces.
+- Use GND via fences around the inductor to contain switching noise.
+- Place capacitors close to IC pins, largest to smallest (bulk → high-frequency).
+- Estimate the temp rise using the chip’s *thermal resistance (°C/W)* and account for ventilation or airflow (copper pour/vias/thermals).
+
+#### SDRAM
+
+##### Single SDRAM
+
+- Point to point layout
+- Place next to BGA
+  - Distance: 600-800mil (no resistors between), 800-1000mil (has resistors between)
+- As always, put filter capacitors next to pins.
+
+##### Dual SDRAM
+
+- Symmetric to CPU
+- When there is enough space, put them on the same layer.
+- When there isn't enough space, put them on the top and bottom respectively.
+- The distance between them is as same as the one for single SDRAM.
+
+##### Notes
+
+- Impedence: ~50ohm.
+- Try to keep each 9 traces on the same layer (D0-D7, LDQM, D8-D15, HDQM).
+- Keep 3W principle, and the distance between data lines, address lines, and clock lines should be at least 20mil or at least 3W.
+  - Add a GND trace between them if possible, width is around 15-30mil.
+- Lower 8bit data lines should be length-matched: tolarence~50mil.
+- Higher 8bit data lines should be length-matched: tolarence~50mil.
+- Address, control, and clock lines should be length-matched: tolarence~100mil.
+
+#### TF Card
+
+- Speed: <=25Mhz: Single-ended impedence: ~50ohm
+- Speed: >25Mhz: Differential impedance: ~95ohm
