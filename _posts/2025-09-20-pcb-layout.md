@@ -1,134 +1,144 @@
-# [Foundation] PCB Layout
+# [Foundation] PCB Layout Guidelines
 
-## Background
+## 1. Background
 
-### Trace Width vs Current (1oz)
+### Trace Width vs Current (1 oz Copper)
 
-- Normal GPIO: 6mil
-- 500mA: 10mil
-- 1A: 20mil
-- 2A: 40mil
-- 5A: 100mil
-- 10A: 200mil
+| Current | Typical Trace Width | Notes |
+|----------|--------------------|-------|
+| GPIO / Low current | 6 mil | Standard signal width |
+| 0.5 A | 10 mil | Suitable for LEDs, small sensors |
+| 1 A | 20 mil |  |
+| 2 A | 40 mil |  |
+| 5 A | 100 mil |  |
+| 10 A | 200 mil | Use solder mask opening and tin coverage |
+| 50 A | 500 mil |  |
+| 100 A | 1000 mil |  |
+| 200 A | 2000 mil |  |
+| 500 A | 5000 mil | Use ≥4.5 oz copper or bus bars |
 
-For larger current, the trace should be covered with solder in practice(or 4.5+oz copper).
+> For high-current paths, widen the trace, increase copper thickness, or apply solder coverage.
 
-- 50A: 500mil
-- 100A: 1000mil
-- 200A: 2000mil
-- 500A: 5000mil
+### Additional Notes
 
-### Notes
+- On compact boards, silkscreen reference designators can be omitted.
+- Follow the **3W rule** for high-speed signal integrity:
+  → Distance between traces ≥ 3× trace width.
 
-- For small-size pcbs, silkscreen referemce designators can be removed.
-- Follow 3W principles to improve signal integrity for high-speed traces.
+---
 
-## Layer Net Allocation
+## 2. Layer Stack and Net Allocation
 
-- 2 Layer Board: All GND
-- 4 Layer Board
-  - Type 1: GND, SIG-1, SIG-2, PWR
-    - Uncontinuous impedance.
-  - Type 2: SIG-1, PWR, GND, SIG-2
-    - Useful when key components or signals are on the top.
-  - Type 3: SIG-1, GND, PWR, SIG-2
-    - Useful when key components or signals are on the bottom.
+### Two-Layer Board
+- Bottom layer should be as continuous **GND plane** as possible.
 
-## Layout
+### Four-Layer Board Options
 
-### Increase EMC
+| Type | Stackup | Characteristics |
+|------|----------|----------------|
+| **Type 1** | GND / SIG-1 / SIG-2 / PWR | Simple, but discontinuous impedance |
+| **Type 2** | SIG-1 / PWR / GND / SIG-2 | Good for top-side components or signals |
+| **Type 3** | SIG-1 / GND / PWR / SIG-2 | Good for bottom-side components |
+
+---
+
+## 3. Layout Process
+
+### EMC Improvement
 
 #### 20H Rule
+- Shrink the **PWR plane** by:
+  - **20 mil** → reduces electric field by ~70%
+  - **100 mil** → reduces electric field by ~98%
 
-- Shrinking the inner PWR plane zone by 20mil can make electric field decrease by 70%, while 100mil can make decrease by 98%.
+### Recommended Workflow
 
-### Steps
+1. Place mechanically constrained components first (USB, connectors, mounting holes).
+2. Plan functional regions: **power**, **digital**, **analog**.
+3. Route critical or high-speed signals first.
+4. Add **fanout vias** for low-current power nets.
+5. Complete all routing.
+6. Optimize critical traces (short, direct, orthogonal).
+7. Add **teardrops** and **copper pour**.
+8. Refine and balance copper planes.
+9. Run **DRC checks**, verify silkscreen and text orientation.
+10. Export **Gerber**, **Pick & Place**, and **BOM** files.
 
-1. Place the constrained components first (USB, wire to wire connectors, mechanic holes...).
+---
 
-2. Plan the power, digital, and analog area.
+## 4. Component Placement and Routing
 
-3. Start with important signal traces.
+### General
+- Align designators consistently (e.g., all facing same direction).
 
-4. Add fanout vias for small current power.
+---
 
-5. Complete all the traces.
+### Quartz Crystal
+- Guard crystal traces with a **10 mil GND ring**.
+- Do **not** route as differential pairs.
+- Place **as close as possible** to MCU pins.
+- Maintain a **solid GND plane** beneath.
 
-6. Optimize the traces.
+---
 
-7. Add teardrops, copper pour.
+### USB 2.0 Interface
+- D+/D− are **differential pairs** (~90 Ω differential impedance).
+- No copper pour or vias underneath pair.
+- Add **bidirectional TVS diode** across D+/D−.
+- Add **unidirectional TVS diode** across VBUS and GND.
+- Ensure trace widths and planes handle expected **VBUS current**.
 
-8. Optimize the planes.
+---
 
-9. Check DRC, check silk layer(designators), texts and icons.
+### Ground Domains
+- Separate **AGND**, **DGND**, and **PGND** to minimize interference.
+- Connect via:
+  - Single point (star ground), or
+  - Capacitive coupling between domains.
 
-10. Export Gerber, Pick and Place, BOM.
+| Domain | Recommendation |
+|---------|----------------|
+| **AGND** | Close to analog reference voltage, filters, and amplifiers |
+| **DGND** | Near digital ICs and loads |
+| **PGND** | For high-current or power circuits; connect to star point or via capacitor |
 
-### Components
+---
 
-#### Designators
+### DC-DC Converter
+- Keep **SW** and **FB** traces as short as possible.
+- Isolate inductor from analog and high-speed regions.
+- Surround with **GND via fence** to confine EMI.
+- Place input/output capacitors **close to pins** — from bulk → ceramic.
+- Check chip’s **thermal resistance (°C/W)** and ensure adequate copper area or vias for heat dissipation.
 
-- Face the same directions.
+---
 
-#### Quartz
+### SDRAM Design
 
-- Use a 10 mil trace to guard the crystal with GND.
-- Do not use differential pair.
-- Place the oscillator as close as to MCU.
-- Keep a solid GND plane under it.
+#### Single SDRAM
+- Point-to-point routing.
+- Place close to MCU/BGA (600–800 mil without resistors; 800–1000 mil with).
+- Decoupling capacitors must be **adjacent to power pins**.
 
-#### USB 2.0
+#### Dual SDRAM
+- Place **symmetrically** relative to CPU.
+- Prefer both on the same layer if space allows; otherwise, top/bottom mirrored.
+- Maintain same routing length as single SDRAM layout.
 
-- Differential pair rule should be applied to D+/D- pair.
-  - Keep out area under it.
-  - Place a bidirectional TVS diode across them.
-  - Impedence: ~90ohm.
-- Design traces and planes to handle the maximum current.
-- Place a unidirectional TVS diode across VBUS and GND.
+#### Routing Notes
+- Target impedance ≈ **50 Ω**.
+- Keep each 9-bit group (D0–D7 + LDQM, D8–D15 + HDQM) on one layer.
+- Maintain **≥3W spacing** or **20 mil** between data, address, and clock lines.
+- Add GND guard traces (15–30 mil) where possible.
+- Length-match tolerances:
+  - Data lines: ±50 mil
+  - Addr/Ctrl/Clock: ±100 mil
 
-#### AGND, DGND, P(Power)GND isolation
+---
 
-- Isolate AGND, DGND, and PGND.
-- Either connect by a single plane, or *star ground*.
-- For analog circuits, AGND should be as close as to analog ref voltage, filter capacitor or amps.
-- For digital circuits, DGND should be as close as to digital power source and output payload.
-- For PGND, delegated GND can be used, and it can be connected to A/DGND by capacitor or at a *star ground*.
+### TF (MicroSD) Card
 
-#### DC-DC
-
-- Minimize SW(switch)–FB(feedback) trace length to reduce noise.
-- Keep the inductor away from sensitive analog, high speed digital traces.
-- Use GND via fences around the inductor to contain switching noise.
-- Place capacitors close to IC pins, largest to smallest (bulk → high-frequency).
-- Estimate the temp rise using the chip’s *thermal resistance (°C/W)* and account for ventilation or airflow (copper pour/vias/thermals).
-
-#### SDRAM
-
-##### Single SDRAM
-
-- Point to point layout
-- Place next to BGA
-  - Distance: 600-800mil (no resistors between), 800-1000mil (has resistors between)
-- As always, put filter capacitors next to pins.
-
-##### Dual SDRAM
-
-- Symmetric to CPU
-- When there is enough space, put them on the same layer.
-- When there isn't enough space, put them on the top and bottom respectively.
-- The distance between them is as same as the one for single SDRAM.
-
-##### Notes
-
-- Impedence: ~50ohm.
-- Try to keep each 9 traces on the same layer (D0-D7, LDQM, D8-D15, HDQM).
-- Keep 3W principle, and the distance between data lines, address lines, and clock lines should be at least 20mil or at least 3W.
-  - Add a GND trace between them if possible, width is around 15-30mil.
-- Lower 8bit data lines should be length-matched: tolarence~50mil.
-- Higher 8bit data lines should be length-matched: tolarence~50mil.
-- Address, control, and clock lines should be length-matched: tolarence~100mil.
-
-#### TF Card
-
-- Speed: <=25Mhz: Single-ended impedence: ~50ohm
-- Speed: >25Mhz: Differential impedance: ~95ohm
+| Speed | Impedance Requirement |
+|--------|----------------------|
+| ≤ 25 MHz | ~50 Ω single-ended |
+| > 25 MHz | ~95 Ω differential |

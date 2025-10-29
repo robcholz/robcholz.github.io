@@ -1,61 +1,89 @@
 # [Foundation] Applied Electronics
 
-## Resistor
+## 1. Resistor
 
-### Voltage Division
+### 1.1 Voltage Division
+Resistors can be connected in series to divide voltage, commonly used for ADC inputs or op-amp biasing.
 
-Use multiple resistors to divide voltage, commonly used in ADC, op-amp inputs.
+- Consider the **resistance ratio** and **ADC resolution** when designing a divider.
+- If **low quiescent current** is required, the divider’s output impedance increases, which affects accuracy:
+  - The ADC’s internal sampling capacitor may not fully charge.
+  - The measured voltage may have error due to the **RC time constant**.
+- When measuring **high currents**, use a **high-power resistor** to handle heat dissipation.
 
-- Pay attention to the proportion of resistances and the resolution of ADC when using ADC.
-- When quiescent current is a requirement, pay attention to the internal impedence (increased Thevenin eq resistance) of the ADC. Error might be enlarged due to increased RC constant (the ADC internal sampling capacitor is not fully charged).
-- When measuring large payload currents, use a large power resistor due to dissipation.
+---
 
-### Current Limiting
+### 1.2 Current Limiting
+Used to limit current to safe levels.
 
-Used before LED... gate of MOSFET.
+- Typical use cases: LED current control, MOSFET gate protection, transistor base drive.
 
-### Pull Up/Down
+---
 
-Give a defined logic level of some floating pins (MCU, I2C...).
+### 1.3 Pull-Up / Pull-Down
+Used to define a stable logic level on floating pins (e.g., MCU inputs, I²C lines).
 
-Provide source current for open-drain/collector buses.
+- Provides source current for **open-drain/open-collector** circuits.
+- Typical resistance ranges:
+  - **I²C:** 2.2k–400kΩ (commonly 4.7k–10kΩ)
+  - **MCU GPIO:** ~10kΩ
+- When low-power operation is critical, choose higher resistance to reduce **quiescent current**.
 
-- 2.2k-400k, 4.7k-100k, 10k are commonly used for I2C; 10k is common for MCU.
-- Pay attention to the quiescent current if required.
+---
 
-### Stablize / Damping
+### 1.4 Stabilization / Damping
+Used to isolate and stabilize signal lines.
 
-Isolation resistor.
+- Known as **isolation resistors** or **damping resistors**.
+- Reduces ringing, EMI, and cross-coupling on high-speed or sensitive traces.
 
-## Capacitor
+---
 
-### Filtering / Decoupling
+## 2. Capacitor
 
-Smooth voltage, reduce high-frequency noise.
-	•	Place near IC power pins, typical 0.01µF–100µF.
-	•	Watch ESR and stability.
+### 2.1 Filtering / Decoupling
+Used to smooth voltage and suppress high-frequency noise.
 
-### Timing / Oscillator
+- Place **as close as possible** to IC power pins.
+- Typical range: **0.01 µF – 100 µF**.
+- Pay attention to **ESR** (Equivalent Series Resistance) and **stability**.
 
-- RC/LC for timing or oscillation.
-  - τ = R × C, consider tolerance and temperature.
+---
 
-### Coupling / AC Blocking
+### 2.2 Timing / Oscillator
+Used in RC or LC timing and oscillator circuits.
 
-- Pass AC, block DC.
-  - Used in audio/amplifier circuits, watch voltage rating.
+- Time constant: **τ = R × C**
+- Consider **tolerance**, **temperature drift**, and **leakage current** when selecting values.
 
-### Bypass / Noise Reduction
+---
 
-- Shunt high-frequency noise, improve signal integrity.
-  - Small ceramics, parallel multiple values for wide frequency.
+### 2.3 Coupling / AC Blocking
+Used to **pass AC** signals while **blocking DC** bias.
 
-### Energy Storage / Pulsing
+- Common in **audio** and **amplifier** stages.
+- Choose capacitors with appropriate **voltage ratings** and **low distortion**.
 
-- Store energy for short bursts.
-  - Supercapacitors or large electrolytics, check voltage and ripple current.
+---
 
-### Snubber / Damping
+### 2.4 Bypass / Noise Reduction
+Used to shunt high-frequency noise and improve signal integrity.
 
-- Suppress spikes/ringing, protect switches.
-  - Often RC in series; choose values based on transient energy and frequency.
+- Small ceramic capacitors (e.g., 0.01 µF, 0.1 µF) are placed close to active components.
+- Use **multiple capacitors in parallel** (e.g., 0.1 µF + 10 µF) to cover a wide frequency range.
+
+---
+
+### 2.5 Energy Storage / Pulsing
+Used to store and release energy for short bursts.
+
+- Common in **power supplies** and **motor drivers**.
+- Use **large electrolytics** or **supercapacitors** with sufficient **voltage** and **ripple current** ratings.
+
+---
+
+### 2.6 Snubber / Damping
+Used to suppress voltage spikes, ringing, and protect switches.
+
+- Typically **RC series** networks.
+- Values depend on **transient energy**, **switching frequency**, and **load characteristics**.
