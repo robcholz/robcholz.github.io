@@ -89,7 +89,7 @@ google_analytics: ""
 # 网站图标
 favicon: /favicon.ico
 # 你的头像url
-avatar: /img/head.jpg
+avatar: /img/head.jpeg
 
 # 是否开启分享
 share_jia: true
