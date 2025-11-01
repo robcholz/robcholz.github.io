@@ -1,1 +1,0 @@
-Embedded System | C++ Development | Feedback Controller | Real-time Operating System
