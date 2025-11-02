@@ -56,9 +56,9 @@ mathjax: true
 
 # Open link in a new tab | 是否在新窗口打开链接
 open_in_new:
-  article: true # 文章链接
-  menu: true # 导航菜单
-  subNav: true # 子菜单
+  article: false  # 保持站内阅读连贯
+  menu: true      # 主导航外链新开
+  subNav: true    # 子导航外链新开
 
 # 打赏
 # 打赏type设定：0-关闭打赏； 1-文章对应的md文件里有reward:true属性，才有打赏； 2-所有文章均有打赏
