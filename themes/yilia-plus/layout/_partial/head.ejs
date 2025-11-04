@@ -28,10 +28,11 @@
   <% } %>
   <%- open_graph({twitter_id: theme.twitter, google_plus: theme.google_plus, fb_admins: theme.fb_admins, fb_app_id: theme.fb_app_id}) %>
   <% if (theme.rss){ %>
-    <link rel="alternative" href="<%- url_for(theme.rss) %>" title="<%= config.title %>" type="application/atom+xml">
-  <% } %>
+      <!-- 修正：rel 应为 alternate（不是 alternative），否则部分客户端识别失败 -->
+      <link rel="alternate" href="<%- url_for(theme.rss) %>" title="<%= config.title %>" type="application/atom+xml">
+    <% } %>
   <% if (theme.favicon){ %>
-    <link rel="icon" type="image/svg+xml" href="<%- url_for(theme.favicon) %>">
+    <link rel="icon" type="image/svg+xml" sizes="any" href="<%- url_for(theme.favicon) %>">
   <% } %>
   <% if (theme.apple_touch_icon){ %>
     <link rel="apple-touch-icon" href="<%- url_for(theme.apple_touch_icon) %>">
@@ -56,4 +57,25 @@
     <link href="//cdn.bootcss.com/pace/1.0.2/themes/<%= theme.progressBar.color || 'blue'%>/pace-theme-<%= theme.progressBar.type || 'minimal'%>.css" rel="stylesheet">
   <% } %>
 
+  <!-- 🔒 保证 PJAX 或路由切换后 favicon 不丢 -->
+  <script>
+  (function(){
+    function setFavicons(){
+      function ensure(attrs){
+        var el = document.querySelector('link[rel="'+attrs.rel+'"][href="'+attrs.href+'"]');
+        if(!el){ el = document.createElement('link'); document.head.appendChild(el); }
+        for (var k in attrs) el.setAttribute(k, attrs[k]);
+      }
+      <% if (theme.favicon){ %>
+      ensure({ rel:'icon', type:'image/svg+xml', sizes:'any', href:'<%- url_for(theme.favicon) %>' });
+      <% } %>
+      <% if (theme.apple_touch_icon){ %>
+      ensure({ rel:'apple-touch-icon', href:'<%- url_for(theme.apple_touch_icon) %>' });
+      <% } %>
+    }
+    document.addEventListener('DOMContentLoaded', setFavicons);
+    document.addEventListener('pjax:complete', setFavicons);
+    document.addEventListener('ajaxloadend', setFavicons);
+  })();
+  </script>
 </head>
