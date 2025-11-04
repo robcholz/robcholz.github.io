@@ -13,7 +13,7 @@ timezone: America/New_York
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: https://robcholz.github.io/
+url: https://www.robcholz.com
 root: /
 permalink: :year/:month/:day/:title/
 #permalink: :category/:title/
