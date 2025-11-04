@@ -5,7 +5,7 @@
   
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
-  <link rel="dns-prefetch" href="https://robcholz.github.io">
+  <link rel="dns-prefetch" href="https://www.robcholz.com">
   <title>[Foundation] Setup CLion with STM32CubeMX project for STM32 Development on macOS | robcholz</title>
   <meta name="generator" content="hexo-theme-yilia-plus">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -14,29 +14,29 @@
 <meta name="keywords" content="ece,framework,software">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[Foundation] Setup CLion with STM32CubeMX project for STM32 Development on macOS">
-<meta property="og:url" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/index.html">
+<meta property="og:url" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/index.html">
 <meta property="og:site_name" content="robcholz">
 <meta property="og:description" content="IDE Setup">
 <meta property="og:locale" content="en-US">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/open_package.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/malware_issue.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/privacy_setting.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/open_cubemx.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/installation_wizard.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/embedded_dev_tools_set.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/toolchains.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/new_project.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/select_board_type.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/open_with_cubemx.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/mcu_before.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/mcu_after.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/ide_selection.png">
-<meta property="og:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/edit_config.png">
-<meta property="og:updated_time" content="2025-11-04T01:53:26.784Z">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/open_package.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/malware_issue.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/privacy_setting.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/open_cubemx.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/installation_wizard.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/embedded_dev_tools_set.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/toolchains.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/new_project.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/select_board_type.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/open_with_cubemx.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/mcu_before.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/mcu_after.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/ide_selection.png">
+<meta property="og:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/edit_config.png">
+<meta property="og:updated_time" content="2025-11-04T01:56:53.136Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="[Foundation] Setup CLion with STM32CubeMX project for STM32 Development on macOS">
 <meta name="twitter:description" content="IDE Setup">
-<meta name="twitter:image" content="https://robcholz.github.io/2023/01/22/clion-dev-macos/open_package.png">
+<meta name="twitter:image" content="https://www.robcholz.com/2023/01/22/clion-dev-macos/open_package.png">
   
     <link rel="alternative" href="/atom.xml" title="robcholz" type="application/atom+xml">
   
@@ -475,7 +475,7 @@ ga('send', 'pageview');
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-     <!-- <img src="//pan.baidu.com/share/qrcode?url=https://robcholz.github.io/2023/01/22/clion-dev-macos/" alt="微信分享二维码"> -->
+     <!-- <img src="//pan.baidu.com/share/qrcode?url=https://www.robcholz.com/2023/01/22/clion-dev-macos/" alt="微信分享二维码"> -->
     </div>
 </div>
 
