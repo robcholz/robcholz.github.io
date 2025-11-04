@@ -84,7 +84,7 @@ top: true
 # Miscellaneous
 # 百度统计
 baidu_analytics: ""
-google_analytics: ""
+google_analytics: "G-1D5S0TBVHJ"
 
 # 网站图标
 favicon: /favicon.svg
