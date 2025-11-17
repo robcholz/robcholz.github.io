@@ -1,0 +1,17 @@
+#header .header-nav .social a.reddit {
+  background: #ff4500;
+  border: 1px solid #ff4500;
+}
+
+#header .header-nav .social a.reddit:hover {
+  border: 1px solid #e03d00;
+}
+
+.icon-reddit:before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: url("./img/reddit.svg") center/16px 16px no-repeat;
+  vertical-align: middle;
+}
