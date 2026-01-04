@@ -235,9 +235,450 @@ ga('send', 'pageview');
     <article id="post-lumen" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
+      <header class="article-header">
+  
+  
+    <h1 itemprop="name">
+	
+	  <a class="article-title" href="/2026/01/02/lumen/">[Project]  Lumen</a>
+	
+    </h1>
+  
+
+
+  
+  
+<a href="/2026/01/02/lumen/" class="archive-article-date">
+        <time datetime="2026-01-02T11:25:39.907Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2026-01-02</time>
+</a>
+
+  
+  
+    
+
+  
+  </header>
+  
   <div class="article-entry" itemprop="articleBody">
     
-    
+    <h1 id="Lumen"><a href="#Lumen" class="headerlink" title="Lumen"></a>Lumen</h1><p align="middle">
+  <img src="/2026/01/02/lumen/cover.jpeg" style="width:500px" alt="cover">
+</p>
+
+<h2 id="1-Motivation-Forcing-System-State-Onto-the-Desk"><a href="#1-Motivation-Forcing-System-State-Onto-the-Desk" class="headerlink" title="1. Motivation: Forcing System State Onto the Desk"></a>1. Motivation: Forcing System State Onto the Desk</h2><p>Lumen started from a simple failure mode: system and application state stayed trapped behind windows and logs. Nothing<br>on the desk moved, blinked, or sounded different when builds broke, power spiked, or motion changed. The workspace<br>stayed visually flat even when the machine was on fire.</p>
+<p>The goal for Lumen was to clamp on that gap and build a <strong>desk-first, programmable hardware presence</strong>:</p>
+<ul>
+<li>Link software and system state to <strong>physical feedback</strong>: lights, motion, sound, display.</li>
+<li>Keep the device useful even when the host PC is detached.</li>
+<li>Avoid custom programmers and opaque tools so users don’t get blocked before the first boot.</li>
+</ul>
+<p>That forced three constraints:</p>
+<ol>
+<li><p><strong>Fully open source, firmware-level programmable.</strong><br>No “vendor firmware” blob that can’t be rebuilt.</p>
+</li>
+<li><p><strong>Straightforward build and flash flow.</strong><br>A user with a browser should be able to flash CI-produced binaries through WebUSB without installing a toolchain.</p>
+</li>
+<li><p><strong>Long-term desktop value over peak performance.</strong><br>If a small performance win broke reproducibility or required special jigs, it got dropped.</p>
+</li>
+</ol>
+<p>These constraints shaped everything: the stack, the drivers, and how the CI pipeline was wired.</p>
+<hr>
+<h2 id="2-Project-Framework-Design"><a href="#2-Project-Framework-Design" class="headerlink" title="2. Project Framework Design"></a>2. Project Framework Design</h2><h3 id="2-1-Hardware-Platform-and-System-Layout"><a href="#2-1-Hardware-Platform-and-System-Layout" class="headerlink" title="2.1 Hardware Platform and System Layout"></a>2.1 Hardware Platform and System Layout</h3><p>The hardware (v2) locks in the capabilities and therefore the firmware structure:</p>
+<ul>
+<li><strong>MCU:</strong> ESP32‑C3</li>
+<li><strong>Sensors and IO:</strong><ul>
+<li>LSM6DSO IMU</li>
+<li>INA226 current sensor</li>
+<li>Buzzer</li>
+<li>Rotary encoder</li>
+</ul>
+</li>
+<li><strong>Display:</strong><ul>
+<li>240×240 panel, ST7789‑like, driven via <code>esp_lcd</code></li>
+</ul>
+</li>
+<li><strong>Power and connectivity:</strong><ul>
+<li>USB‑C</li>
+<li>Power switch</li>
+</ul>
+</li>
+</ul>
+<p>This stack forced a design where display throughput, motion sampling, power monitoring, and host I/O all run<br>concurrently without clobbering each other, under <strong>FreeRTOS</strong>.</p>
+<h3 id="2-2-Firmware-Stack-FreeRTOS-Core-Layered-Drivers"><a href="#2-2-Firmware-Stack-FreeRTOS-Core-Layered-Drivers" class="headerlink" title="2.2 Firmware Stack: FreeRTOS Core, Layered Drivers"></a>2.2 Firmware Stack: FreeRTOS Core, Layered Drivers</h3><p>At the firmware level, Lumen runs on <strong>ESP‑IDF v5.5</strong> with FreeRTOS. The project is structured in layers rather than one<br>monolithic <code>main.c</code>:</p>
+<ol>
+<li><p><strong>Hardware drivers (C/C++):</strong></p>
+<ul>
+<li>Display panel via <code>esp_lcd</code></li>
+<li>I2C plumbing for LSM6DSO and INA226</li>
+<li>Rotary encoder and buzzer</li>
+<li>USB serial‑JTAG interface</li>
+</ul>
+</li>
+<li><p><strong>System integration and logic:</strong></p>
+<ul>
+<li>FreeRTOS task graph</li>
+<li>Motion task</li>
+<li>UI rendering pipeline</li>
+<li>Host serial protocol</li>
+</ul>
+</li>
+<li><p><strong>Rust no‑std component (main_app):</strong></p>
+<ul>
+<li>Sits only in the <strong>system integration layer</strong>.</li>
+<li>Does <em>not</em> replace the C/C++ hardware drivers.</li>
+<li>Avoids a split stack where half the drivers live in one language and half in another.</li>
+</ul>
+</li>
+</ol>
+<p>Rust was pulled in specifically where it helped structure higher‑level integration logic, not to rewrite vendor SDK<br>surfaces. That constraint prevented a steady stream of build and tooling failures from dual ecosystems fighting each<br>other.</p>
+<h3 id="2-3-UI-Stack-Vision‑UI-on-u8g2-on-ST7789"><a href="#2-3-UI-Stack-Vision‑UI-on-u8g2-on-ST7789" class="headerlink" title="2.3 UI Stack: Vision‑UI on u8g2 on ST7789"></a>2.3 UI Stack: Vision‑UI on u8g2 on ST7789</h3><p>The display stack uses a layered approach to keep UI changes from breaking lower layers:</p>
+<ul>
+<li><strong>Vision‑UI</strong>: a small embedded UI library.</li>
+<li><strong>u8g2</strong>: provides a <strong>mono framebuffer</strong> and drawing primitives.</li>
+<li><strong>Panel driver</strong>: ST7789‑like display, driven via <code>esp_lcd</code> APIs.</li>
+</ul>
+<p>Implementation lives in <code>main/src/ui_hardware_driver.cpp</code>:</p>
+<ul>
+<li>A global <code>PANEL</code> handle ties into <code>esp_lcd</code>.</li>
+<li>The UI code only sees a framebuffer and a driver callback to “send buffer,” not the exact panel timing.</li>
+</ul>
+<p>This wiring means:</p>
+<ul>
+<li>UI layout changes do not force display driver changes.</li>
+<li>Display driver swaps stay local to the <code>esp_lcd</code> layer.</li>
+<li>The top‑level logic doesn’t need to know about DMA allocations or RGB565 conversions.</li>
+</ul>
+<h3 id="2-4-Build-and-Release-CI‑First-Web-Flash-Second"><a href="#2-4-Build-and-Release-CI‑First-Web-Flash-Second" class="headerlink" title="2.4 Build and Release: CI‑First, Web Flash Second"></a>2.4 Build and Release: CI‑First, Web Flash Second</h3><p>The build system is pinned down in <code>.github/workflows/build.yml</code>:</p>
+<ul>
+<li><strong>GitHub Actions</strong> installs:<ul>
+<li>ESP‑IDF v5.5</li>
+<li>A minimal Rust toolchain</li>
+<li>The RISC‑V target for ESP32‑C3</li>
+</ul>
+</li>
+<li>CI runs <code>idf.py build</code> and produces <strong>firmware artifacts</strong>.</li>
+</ul>
+<p>Those artifacts feed a <strong>web flashing flow</strong>:</p>
+<ul>
+<li>Browser + WebUSB grabs the CI artifact and flashes the board.</li>
+<li>No local ESP‑IDF or Rust installation is required for basic users.</li>
+</ul>
+<p>This flow looked heavier than a one‑off local build, but it removed a constant failure mode: users blocked by toolchain<br>setup. All complexity is clamped into CI instead of onto every developer’s machine.</p>
+<hr>
+<h2 id="3-Overhead-Balance-and-Tradeoffs"><a href="#3-Overhead-Balance-and-Tradeoffs" class="headerlink" title="3. Overhead Balance and Tradeoffs"></a>3. Overhead Balance and Tradeoffs</h2><h3 id="3-1-Reproducibility-vs-Performance"><a href="#3-1-Reproducibility-vs-Performance" class="headerlink" title="3.1 Reproducibility vs. Performance"></a>3.1 Reproducibility vs. Performance</h3><p>Several design choices pulled away from “fastest possible” and toward “reproducible and survivable”:</p>
+<ul>
+<li><p>Using <strong>ESP‑IDF v5.5</strong> and <code>esp_lcd</code> adds abstraction and some overhead vs. hand‑tuned register banging, but:</p>
+<ul>
+<li>It keeps code aligned with upstream.</li>
+<li>It avoids a fragile, undocumented display driver that breaks when the next board spin rearranges pins.</li>
+</ul>
+</li>
+<li><p>Driving the display through a <strong>u8g2 mono framebuffer</strong> and then converting to RGB565 is not the fastest route:</p>
+<ul>
+<li>A direct color framebuffer could shave steps.</li>
+<li>But it would lock UI code into a specific panel format.</li>
+<li>The chosen route makes assets and widgets less brittle when the panel or bus changes.</li>
+</ul>
+</li>
+</ul>
+<p>The README explicitly notes that squeezing the last bit of performance did not win over long‑term desktop usefulness and<br>reproducibility.</p>
+<h3 id="3-2-Independence-from-the-Host-PC"><a href="#3-2-Independence-from-the-Host-PC" class="headerlink" title="3.2 Independence from the Host PC"></a>3.2 Independence from the Host PC</h3><p>Another hard constraint: the device must hold value even when unplugged from any PC.</p>
+<p>Two consequences:</p>
+<ul>
+<li><p><strong>Core logic cannot depend on serial I/O:</strong></p>
+<ul>
+<li>The <strong>serial pack</strong> protocol (host interaction) is optional.</li>
+<li>Motion processing, display updates, and protection logic run without any host.</li>
+</ul>
+</li>
+<li><p><strong>UI decoupled from top‑level logic:</strong></p>
+<ul>
+<li>Input handling and UI rendering can change without rewriting the control loop.</li>
+<li>Firmware doesn’t stall if the serial channel drops or a host app misbehaves.</li>
+</ul>
+</li>
+</ul>
+<p>This avoids a failure mode where an absent or crashed host application bricks device usefulness.</p>
+<h3 id="3-3-Web-Flashing-Limitations"><a href="#3-3-Web-Flashing-Limitations" class="headerlink" title="3.3 Web Flashing Limitations"></a>3.3 Web Flashing Limitations</h3><p>The web flashing path trades one class of problems for another:</p>
+<ul>
+<li><p><strong>Dependency on WebUSB support:</strong></p>
+<ul>
+<li>Some browsers and platforms simply do not support it.</li>
+<li>In those cases, the user is forced back to local tooling.</li>
+</ul>
+</li>
+<li><p><strong>No CI caching yet:</strong></p>
+<ul>
+<li>The current CI build workflow does not cache IDF or build artifacts.</li>
+<li>Every build re‑does configuration and compilation.</li>
+<li>Builds therefore take longer than necessary.</li>
+</ul>
+</li>
+</ul>
+<p>The README calls these out instead of hiding them. Build times can be improved later by inserting caching or diff<br>builds, but correctness and repeatability were prioritized first.</p>
+<hr>
+<h2 id="4-Display-Pipeline-Double‑Buffered-DMA-Under-Pressure"><a href="#4-Display-Pipeline-Double‑Buffered-DMA-Under-Pressure" class="headerlink" title="4. Display Pipeline: Double‑Buffered DMA Under Pressure"></a>4. Display Pipeline: Double‑Buffered DMA Under Pressure</h2><h3 id="4-1-Design-Constraint"><a href="#4-1-Design-Constraint" class="headerlink" title="4.1 Design Constraint"></a>4.1 Design Constraint</h3><p>The display needed to refresh a 240×240 panel without stalling the MCU or blocking other tasks. Direct full‑frame copies<br>would overflow time budgets and starve motion and serial tasks.</p>
+<p>To avoid that, the implementation uses <strong>line‑based double buffering</strong> with DMA‑capable memory:</p>
+<ul>
+<li>Defined in <code>main/src/ui_hardware_driver.cpp</code>.</li>
+<li>Globals and constants:<ul>
+<li><code>S_LINES[2]</code>: two DMA‑capable line buffers.</li>
+<li><code>S_BUF_BUSY[2]</code>: flags to track which buffer is in-flight.</li>
+<li><code>PARALLEL_LINES</code>: number of lines per chunk; set to 128.</li>
+<li><code>PANEL</code>: <code>esp_lcd_panel_handle_t</code>.</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-2-Pipeline-Behavior"><a href="#4-2-Pipeline-Behavior" class="headerlink" title="4.2 Pipeline Behavior"></a>4.2 Pipeline Behavior</h3><ol>
+<li><p><strong>Initialization (<code>displayInit</code>):</strong></p>
+<ul>
+<li>Allocates <code>S_LINES[0]</code> and <code>S_LINES[1]</code> with <code>heap_caps_malloc</code> using <code>MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL</code>.</li>
+<li>Sets up the panel via <code>esp_lcd</code>, including a callback:<ul>
+<li><code>onColorTransDone</code>: fires when DMA completes for a chunk.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Rendering (<code>vision_ui_driver_buffer_send</code>):</strong></p>
+<ul>
+<li>UI code provides a mono u8g2 framebuffer.</li>
+<li>The driver:<ul>
+<li>Splits it into RGB565 blocks of <code>PARALLEL_LINES</code> height.</li>
+<li>For each block:<ul>
+<li>Finds a <strong>non‑busy</strong> buffer (<code>S_BUF_BUSY[i] == false</code>).</li>
+<li>Converts mono data into RGB565 into that buffer.</li>
+<li>Calls <code>esp_lcd_panel_draw_bitmap</code> on <code>PANEL</code> for that chunk.</li>
+<li>Marks buffer busy.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>DMA completion (<code>onColorTransDone</code>):</strong></p>
+<ul>
+<li>Clears the corresponding <code>S_BUF_BUSY[i]</code>.</li>
+<li>Signals that chunk buffer is ready to be reused.</li>
+</ul>
+</li>
+</ol>
+<p>This design keeps the CPU from sitting on long blocking writes. Conversion and DMA transfer are overlapped: while one<br>buffer is in flight, the other can be filled.</p>
+<h3 id="4-3-Tradeoffs"><a href="#4-3-Tradeoffs" class="headerlink" title="4.3 Tradeoffs"></a>4.3 Tradeoffs</h3><ul>
+<li><p><strong>Pros:</strong></p>
+<ul>
+<li>Reduced stalls on the display path.</li>
+<li>Predictable memory footprint via <code>PARALLEL_LINES</code> control.</li>
+<li>Easier tuning for future panels.</li>
+</ul>
+</li>
+<li><p><strong>Cons:</strong></p>
+<ul>
+<li>Extra copy step: mono → RGB565.</li>
+<li>More state to track (<code>S_BUF_BUSY</code>, callbacks).</li>
+<li>Harder debugging when transfers misalign.</li>
+</ul>
+</li>
+</ul>
+<p>The double‑buffering logic is deliberately localized in <code>ui_hardware_driver.cpp</code> so that higher layers don’t need to<br>know about DMA or panel quirks.</p>
+<hr>
+<h2 id="5-Motion-Processing-IMU-Task-and-Filters"><a href="#5-Motion-Processing-IMU-Task-and-Filters" class="headerlink" title="5. Motion Processing: IMU Task and Filters"></a>5. Motion Processing: IMU Task and Filters</h2><h3 id="5-1-Motion-Task-Setup"><a href="#5-1-Motion-Task-Setup" class="headerlink" title="5.1 Motion Task Setup"></a>5.1 Motion Task Setup</h3><p>Motion handling sits in its own FreeRTOS task to avoid blocking UI or serial operations.</p>
+<p>Implementation: <code>main/src/motion.cpp</code>.</p>
+<p>Key pieces:</p>
+<ul>
+<li><strong>IMU:</strong> LSM6DSO</li>
+<li><strong>I2C access:</strong> shared handle, with wrappers:<ul>
+<li><code>imuWrite</code></li>
+<li><code>imuRead</code></li>
+<li><code>imuWriteThenRead</code></li>
+</ul>
+</li>
+<li><strong>Task:</strong><ul>
+<li><code>motionInit</code> sets up IMU and spawns <code>motionTask</code> with <code>xTaskCreate</code>.</li>
+<li>Target rate: roughly <strong>25 Hz</strong>.</li>
+</ul>
+</li>
+</ul>
+<h3 id="5-2-Orientation-Estimation"><a href="#5-2-Orientation-Estimation" class="headerlink" title="5.2 Orientation Estimation"></a>5.2 Orientation Estimation</h3><p>Two filter paths run on the sensor data:</p>
+<ol>
+<li><p><strong>2‑state Kalman filter (<code>espp::KalmanFilter&lt;2&gt;</code>, <code>S_KF</code>):</strong></p>
+<ul>
+<li>Tracks roll and pitch.</li>
+<li>Smooths noisy accel/gyro inputs.</li>
+</ul>
+</li>
+<li><p><strong>Madgwick filter (<code>MADGWICK</code>):</strong></p>
+<ul>
+<li>Provides full orientation (quaternion).</li>
+<li>Fuses accelerometer and gyroscope data.</li>
+</ul>
+</li>
+</ol>
+<h3 id="5-3-Mounting-Fix-and-Accel-Scaling"><a href="#5-3-Mounting-Fix-and-Accel-Scaling" class="headerlink" title="5.3 Mounting Fix and Accel Scaling"></a>5.3 Mounting Fix and Accel Scaling</h3><p>The physical mounting ended up upside‑down relative to the IMU’s default orientation. That broke orientation output<br>early on. The fix:</p>
+<ul>
+<li><strong>Axis flip:</strong><ul>
+<li>Y and Z axes are flipped.</li>
+<li>Gyro axes are also flipped accordingly.</li>
+</ul>
+</li>
+</ul>
+<p>Without this correction, roll/pitch estimates were mirrored and drifted in unexpected ways.</p>
+<p>To keep the acceleration magnitude sane:</p>
+<ul>
+<li><strong>Adaptive accel scaling</strong>:<ul>
+<li>Normalizes magnitude to approximately <strong>9.80665 m/s²</strong>.</li>
+<li>Prevents gravity from drifting away due to calibration offsets.</li>
+</ul>
+</li>
+</ul>
+<p>This scaling avoids overflow in the filters and reduces long‑term drift.</p>
+<h3 id="5-4-Runtime-Behavior"><a href="#5-4-Runtime-Behavior" class="headerlink" title="5.4 Runtime Behavior"></a>5.4 Runtime Behavior</h3><p>The motion task:</p>
+<ul>
+<li>Samples the IMU at ~25 Hz.</li>
+<li>Runs the Kalman and Madgwick updates.</li>
+<li>Exposes motion/pose data internally (and via host protocol).</li>
+</ul>
+<p>By isolating this in one task, any stalls in host communication or display updates do not directly block sensor reads.<br>If CPU load increases, sampling may drop somewhat, but the rest of the system keeps running.</p>
+<hr>
+<h2 id="6-Serial-“Pack”-Protocol-Host-Integration-Without-Entanglement"><a href="#6-Serial-“Pack”-Protocol-Host-Integration-Without-Entanglement" class="headerlink" title="6. Serial “Pack” Protocol: Host Integration Without Entanglement"></a>6. Serial “Pack” Protocol: Host Integration Without Entanglement</h2><h3 id="6-1-Requirements"><a href="#6-1-Requirements" class="headerlink" title="6.1 Requirements"></a>6.1 Requirements</h3><p>Host connectivity needed to:</p>
+<ul>
+<li>Support structured commands and payloads.</li>
+<li>Avoid a tangled binary protocol that blocks easy debugging.</li>
+<li>Stay <strong>optional</strong>: no hard dependency for core firmware behavior.</li>
+</ul>
+<h3 id="6-2-Protocol-Structure"><a href="#6-2-Protocol-Structure" class="headerlink" title="6.2 Protocol Structure"></a>6.2 Protocol Structure</h3><p>The <strong>serial pack</strong> protocol lives in <code>main/src/serial_pack.cpp</code> and runs over the <strong>USB serial‑JTAG</strong> interface.</p>
+<p>Basic flow for each message:</p>
+<ol>
+<li><p><strong>Path:</strong></p>
+<ul>
+<li>ASCII string.</li>
+<li>Terminated by newline (<code>\n</code>).</li>
+<li>Example: <code>motion/data\n</code>.</li>
+</ul>
+</li>
+<li><p><strong>Length:</strong></p>
+<ul>
+<li>4‑byte little‑endian integer.</li>
+<li>Specifies payload size.</li>
+</ul>
+</li>
+<li><p><strong>Payload:</strong></p>
+<ul>
+<li>Binary blob of that length.</li>
+</ul>
+</li>
+</ol>
+<p>A handler table routes messages based on the path.</p>
+<h3 id="6-3-Implementation-Details"><a href="#6-3-Implementation-Details" class="headerlink" title="6.3 Implementation Details"></a>6.3 Implementation Details</h3><p>Constants:</p>
+<ul>
+<li><code>K_MAX_HANDLERS = 2</code><br>Small fixed table; keeps memory fixed and simple.</li>
+<li><code>K_MAX_DATA_LEN = 2048</code><br>Hard clamp to prevent payloads from blowing up buffers.</li>
+<li><code>K_RX_TIMEOUT_US = 3 * 1000 * 1000</code><br>3‑second receive timeout.</li>
+</ul>
+<p>Main functions:</p>
+<ul>
+<li><p><code>serialPackInit</code><br>Sets up state.</p>
+</li>
+<li><p><code>serialPackAttachHandler</code><br>Registers handler callbacks:</p>
+<ul>
+<li>Up to <code>K_MAX_HANDLERS</code>.</li>
+<li>Each handler keyed by path string.</li>
+</ul>
+</li>
+<li><p><code>serialPackStart</code> / <code>serialPackTask</code><br>Runs the read loop:</p>
+<ul>
+<li>Reads the path until newline.</li>
+<li>Parses the 4‑byte length.</li>
+<li>If <code>length &gt; K_MAX_DATA_LEN</code>, the message is effectively rejected.</li>
+<li>Reads the payload in <strong>chunks</strong>:<ul>
+<li>Dispatches chunks incrementally to handlers.</li>
+<li>Applies timeout via <code>K_RX_TIMEOUT_US</code>.</li>
+</ul>
+</li>
+<li>Optional logging/preview to help debugging.</li>
+</ul>
+</li>
+</ul>
+<h3 id="6-4-Tradeoffs-and-Failure-Modes"><a href="#6-4-Tradeoffs-and-Failure-Modes" class="headerlink" title="6.4 Tradeoffs and Failure Modes"></a>6.4 Tradeoffs and Failure Modes</h3><ul>
+<li><p><strong>Low handler count (<code>K_MAX_HANDLERS = 2</code>):</strong></p>
+<ul>
+<li>Forces consolidation of endpoints.</li>
+<li>Prevents unbounded growth of handler registrations.</li>
+</ul>
+</li>
+<li><p><strong>Payload clamp (<code>K_MAX_DATA_LEN = 2048</code>):</strong></p>
+<ul>
+<li>Protects against memory blow‑ups if a host goes rogue.</li>
+<li>Blocks large streaming use cases unless the protocol is extended.</li>
+</ul>
+</li>
+<li><p><strong>Timeout (<code>K_RX_TIMEOUT_US = 3s</code>):</strong></p>
+<ul>
+<li>Prevents the parser from hanging forever on partial messages.</li>
+<li>Under poor USB conditions, packets might get dropped or truncated when the timeout triggers.</li>
+</ul>
+</li>
+</ul>
+<p>By keeping the protocol text‑framed on the path and length‑delimited on the payload, debugging is still manageable with<br>simple serial tools.</p>
+<hr>
+<h2 id="7-Features-and-Observed-Results"><a href="#7-Features-and-Observed-Results" class="headerlink" title="7. Features and Observed Results"></a>7. Features and Observed Results</h2><h3 id="7-1-Hardware-Feature-Set-v2"><a href="#7-1-Hardware-Feature-Set-v2" class="headerlink" title="7.1 Hardware Feature Set (v2)"></a>7.1 Hardware Feature Set (v2)</h3><p>From the README and hardware directory, v2 boards include:</p>
+<ul>
+<li><strong>Display:</strong> 240×240 ST7789‑like panel.</li>
+<li><strong>Motion:</strong> LSM6DSO IMU.</li>
+<li><strong>Power:</strong> INA226 current sensor on USB‑C path.</li>
+<li><strong>Interaction:</strong><ul>
+<li>Rotary encoder.</li>
+<li>Buzzer.</li>
+</ul>
+</li>
+<li><strong>Power control:</strong> physical power switch.</li>
+</ul>
+<p>This combination gives enough axes—visual, motion, and sound—to map varied system state into desk‑visible behavior.</p>
+<h3 id="7-2-Implemented-Firmware-Capabilities"><a href="#7-2-Implemented-Firmware-Capabilities" class="headerlink" title="7.2 Implemented Firmware Capabilities"></a>7.2 Implemented Firmware Capabilities</h3><p>Firmware features visible in the repository:</p>
+<ul>
+<li><p><strong>USB‑C power monitoring and protection:</strong></p>
+<ul>
+<li>INA226 sensor used for current/voltage measurements.</li>
+<li>Protection logic clamps down on unsafe conditions (details wired into the system logic).</li>
+</ul>
+</li>
+<li><p><strong>Motion tracking:</strong></p>
+<ul>
+<li>IMU readout with Kalman and Madgwick filters.</li>
+<li>Mounting fix applied for orientation correctness.</li>
+</ul>
+</li>
+<li><p><strong>UI rendering via Vision‑UI:</strong></p>
+<ul>
+<li>Framebuffer driven UI.</li>
+<li>Display assets embedded in firmware:<ul>
+<li><code>ui_assets_provider.cpp</code> provides embedded images/fonts for Vision‑UI.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Host communication:</strong></p>
+<ul>
+<li>Serial pack protocol over USB serial‑JTAG.</li>
+<li>Structured path + length framing.</li>
+</ul>
+</li>
+<li><p><strong>Web quick flashing:</strong></p>
+<ul>
+<li>CI‑produced artifacts used directly by the web flasher.</li>
+<li>No local toolchain needed for basic flashing.</li>
+</ul>
+</li>
+</ul>
+<h3 id="7-3-Runtime-Behavior-and-Observations"><a href="#7-3-Runtime-Behavior-and-Observations" class="headerlink" title="7.3 Runtime Behavior and Observations"></a>7.3 Runtime Behavior and Observations</h3><p>In combined operation, the system:</p>
+<ul>
+<li>Refreshes the 240×240 panel with double‑buffered DMA without starving FreeRTOS tasks.</li>
+<li>Samples motion at ~25 Hz while filtering orientation in real time.</li>
+<li>Streams motion and state over the serial pack protocol when a host is present.</li>
+<li>Continues to function (UI, motion, basic behavior) without any serial host connected.</li>
+</ul>
+<p>Overhead is clearly present: layered UI, filters, serial protocol, CI scaffolding. But each layer was added in response<br>to a concrete failure mode—tooling blockage, display stalls, incorrect orientation, unsafe power behavior—rather than as<br>abstract design.</p>
+<p>Lumen ends up as a reproducible, firmware‑level programmable desk companion that ties system state into light, motion,<br>and sound without depending on a constant host tether.</p>
+
     
 
     
@@ -248,6 +689,25 @@ ga('send', 'pageview');
   <div class="article-info article-info-index">
     
     
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">ece</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">software</a>
+        		</li>
+      		 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">proj</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
     
 
     
